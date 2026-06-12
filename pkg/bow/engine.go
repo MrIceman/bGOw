@@ -35,6 +35,15 @@ type wordCount struct {
 	Count int64
 }
 
+// GetPos returns the position of the word in the dictionary, if not exists then -1
+func (s *Engine) GetPos(word string) int {
+	pos, ok := s.wordLookUp[word]
+	if !ok {
+		return -1
+	}
+	return pos
+}
+
 func (s *Engine) GetWordsFromVec(vec []uint8) []string {
 	var result []string
 	for idx, val := range vec {

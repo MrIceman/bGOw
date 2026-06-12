@@ -25,4 +25,8 @@ func TestEngine(t *testing.T) {
 	words := eng.GetWordsFromVec(vec)
 
 	slog.Info("got a result", "res", vec, "vec count", len(vec), "words", words)
+
+	for _, word := range words {
+		slog.Info("look up", "word", word, "pos", eng.GetPos(word))
+	}
 }
