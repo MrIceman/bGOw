@@ -5,17 +5,23 @@ import (
 	"strings"
 )
 
-type Engine struct {
-	Corpus []string
-	Vector []uint8
-	X      int
-	Y      int
-	Top    int
+type (
+	Length struct {
+		X int
+	}
+	Engine struct {
+		corpus []string
+		// top specifies the top most occurrences of a word within the corpus that should be considered in the bow
+		// otherwise ALL words will be taken
+		top        int
+		vectorSize int
 
-	dict       map[string]int
-	posLookUp  map[int]string // has the position of the word in the dict
-	wordLookUp map[string]int
-}
+		dict       map[string]int
+		posLookUp  map[int]string // has the position of the word in the dict
+		wordLookUp map[string]int
+		shape      *Length
+	}
+)
 
 func NewEngine() *Engine {
 	return &Engine{
@@ -25,8 +31,22 @@ func NewEngine() *Engine {
 	}
 }
 
+func (e *Engine) BowLength() *Length {
+	return e.shape
+}
+
+func (e *Engine) WithCorpus(corpus []string) *Engine {
+	e.corpus = corpus
+	return e
+}
+
+func (e *Engine) WithTop(top int) *Engine {
+	e.top = top
+	return e
+}
+
 func (e *Engine) SetCorpus(corpus []string) {
-	e.Corpus = corpus
+	e.corpus = corpus
 }
 
 type count = int
@@ -36,42 +56,43 @@ type wordCount struct {
 }
 
 // GetPos returns the position of the word in the dictionary, if not exists then -1
-func (s *Engine) GetPos(word string) int {
-	pos, ok := s.wordLookUp[word]
+func (e *Engine) GetPos(word string) int {
+	pos, ok := e.wordLookUp[word]
 	if !ok {
 		return -1
 	}
 	return pos
 }
 
-func (s *Engine) GetWordsFromVec(vec []uint8) []string {
+func (e *Engine) GetWordsFromVec(vec []uint8) []string {
 	var result []string
 	for idx, val := range vec {
 		if val == 1 {
-			result = append(result, s.posLookUp[idx])
+			result = append(result, e.posLookUp[idx])
 		}
 	}
 
 	return result
 }
 
-func (s *Engine) Fit() {
+func (e *Engine) Fit() {
 	countWMap := make(map[string]int64)
-	for cIdx := range s.Corpus {
-		for _, w := range strings.Split(s.Corpus[cIdx], " ") {
+	for cIdx := range e.corpus {
+		for _, w := range strings.Split(e.corpus[cIdx], " ") {
 			countWMap[w]++
 		}
 	}
+
+	// initialize vector length -- it's either top or the vec size
 	var vecSize int
-	if len(countWMap) < s.Top {
+	if len(countWMap) < e.top || e.top == 0 {
 		vecSize = len(countWMap)
 	} else {
-		vecSize = s.Top
+		vecSize = e.top
 	}
-	s.Vector = make([]uint8, vecSize)
+	e.vectorSize = vecSize
 
 	wordCounts := make([]wordCount, 0, len(countWMap))
-
 	for word, count := range countWMap {
 		wordCounts = append(wordCounts, wordCount{
 			Word:  word,
@@ -87,16 +108,20 @@ func (s *Engine) Fit() {
 
 	for i := 0; i < vecSize; i++ {
 		sortedWords[wordCounts[i].Word] = i
-		s.posLookUp[i] = wordCounts[i].Word
-		s.wordLookUp[wordCounts[i].Word] = i
+		e.posLookUp[i] = wordCounts[i].Word
+		e.wordLookUp[wordCounts[i].Word] = i
+	}
+
+	e.shape = &Length{
+		X: e.vectorSize,
 	}
 }
 
-func (s *Engine) Transform(payload string) []uint8 {
-	initVector := make([]uint8, len(s.Vector), len(s.Vector))
+func (e *Engine) Transform(payload string) []uint8 {
+	initVector := make([]uint8, e.vectorSize)
 	splitPayload := strings.Split(payload, " ")
 	for idx := range splitPayload {
-		pos, ok := s.wordLookUp[splitPayload[idx]]
+		pos, ok := e.wordLookUp[splitPayload[idx]]
 		if !ok {
 			continue
 		}
