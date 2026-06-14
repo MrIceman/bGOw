@@ -31,6 +31,10 @@ func NewEngine() *Engine {
 		dict:       make(map[string]int),
 		posLookUp:  make(map[int]string),
 		wordLookUp: make(map[string]int),
+		countVec:   make([]int, 0),
+		corpus:     make([]string, 0),
+		corpusVecs: make([][]uint8, 0),
+		top:        0,
 	}
 }
 
