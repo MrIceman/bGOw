@@ -31,7 +31,6 @@ func NewEngine() *Engine {
 		dict:       make(map[string]int),
 		posLookUp:  make(map[int]string),
 		wordLookUp: make(map[string]int),
-		countVec:   make([]int, 0),
 		corpus:     make([]string, 0),
 		corpusVecs: make([][]uint8, 0),
 		top:        0,
@@ -119,7 +118,7 @@ func (e *Engine) Fit() {
 	})
 
 	sortedWords := make(map[string]int, vecSize)
-
+	e.countVec = make([]int, vecSize)
 	for i := 0; i < vecSize; i++ {
 		sortedWords[wordCounts[i].Word] = i
 		e.posLookUp[i] = wordCounts[i].Word
