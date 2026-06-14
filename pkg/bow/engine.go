@@ -1,6 +1,7 @@
 package bow
 
 import (
+	"errors"
 	"sort"
 	"strings"
 )
@@ -75,6 +76,13 @@ func (e *Engine) GetWordsFromVec(vec []uint8) []string {
 	}
 
 	return result
+}
+
+func (e *Engine) LookUpWord(idx int) (string, error) {
+	if val, ok := e.posLookUp[idx]; ok {
+		return val, nil
+	}
+	return "", errors.New("word not found")
 }
 
 func (e *Engine) Fit() {
