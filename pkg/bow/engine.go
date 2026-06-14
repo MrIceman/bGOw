@@ -10,8 +10,9 @@ type (
 		X int
 	}
 	Engine struct {
-		corpus   []string
-		countVec []int
+		corpus     []string
+		countVec   []int
+		corpusVecs [][]uint8
 		// top specifies the top most occurrences of a word within the corpus that should be considered in the bow
 		// otherwise ALL words will be taken
 		top        int
@@ -117,6 +118,16 @@ func (e *Engine) Fit() {
 	e.shape = &Length{
 		X: e.vectorSize,
 	}
+	// create the corpus vector
+
+	for _, c := range e.corpus {
+		vec := e.Transform(c)
+		e.corpusVecs = append(e.corpusVecs, vec)
+	}
+}
+
+func (e *Engine) CorpusVecs() [][]uint8 {
+	return e.corpusVecs
 }
 
 func (e *Engine) CountVec() []int {
