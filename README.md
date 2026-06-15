@@ -57,7 +57,9 @@ func main() {
 ## How it works
 
 1. **Fit** splits every entry in the corpus on spaces and counts word
-   frequencies, then assigns each word a fixed position in the vocabulary.
+   frequencies, then assigns each word a fixed position in the vocabulary. It
+   also precomputes the binary vector for every corpus entry (`CorpusVecs`) and
+   the per-word frequency counts (`CountVec`).
 2. **Transform** produces a vector the size of the vocabulary, setting `1` at
    the position of every known word found in the input (unknown words are
    ignored). The vector is binary (presence/absence), not a frequency count.
@@ -70,11 +72,14 @@ func main() {
 | `WithCorpus(corpus []string) *Engine` | Sets the corpus (chainable). |
 | `WithTop(top int) *Engine` | Limits the vocabulary to the `top` most frequent words (chainable). `0` means use all words. |
 | `SetCorpus(corpus []string)` | Sets the corpus without chaining. |
-| `Fit()` | Builds the vocabulary from the corpus. |
+| `Fit()` | Builds the vocabulary from the corpus and precomputes corpus vectors and word counts. |
 | `Transform(payload string) []uint8` | Encodes a sentence into a binary vector. |
 | `BowLength() *Length` | Returns the vector length (`Length.X`). |
 | `GetPos(word string) int` | Returns a word's vocabulary index, or `-1` if not present. |
+| `LookUpWord(idx int) (string, error)` | Returns the word at a vocabulary index, or an error if out of range. |
 | `GetWordsFromVec(vec []uint8) []string` | Decodes a vector back into words. |
+| `CorpusVecs() [][]uint8` | Returns the precomputed binary vectors for each corpus entry (after `Fit`). |
+| `CountVec() []int` | Returns the frequency count for each vocabulary word, ordered by position (after `Fit`). |
 
 ### Limiting vocabulary size
 
