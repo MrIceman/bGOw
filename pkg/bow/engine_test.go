@@ -1,13 +1,14 @@
 package bow_test
 
 import (
-	"bGOw/pkg/bow"
 	"fmt"
 	"log"
 	"log/slog"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/mriceman/bgow/pkg/bow"
 )
 
 func TestEngine(t *testing.T) {
@@ -46,7 +47,13 @@ func TestEngine(t *testing.T) {
 
 		payload := "martin is NOT a dog"
 		result := subject.Transform(payload)
-
+		slog.Info("got binary bow token", "result", result)
+		expected := []uint8{0, 1, 0, 1, 0, 1, 0, 1, 0, 0}
+		for idx := range result {
+			if result[idx] != expected[idx] {
+				t.Errorf("result[%d] = %v, got %v", idx, expected[idx], result[idx])
+			}
+		}
 		var tokens []string
 		for _, token := range subject.GetWordsFromVec(result) {
 			slog.Info("reverted token", "token", token, "pos", subject.GetPos(token))

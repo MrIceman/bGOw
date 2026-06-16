@@ -92,7 +92,8 @@ func (e *Engine) Fit() {
 	countWMap := make(map[string]int64)
 	for cIdx := range e.corpus {
 		for _, w := range strings.Split(e.corpus[cIdx], " ") {
-			countWMap[w]++
+			// TODO implement stop words etc.
+			countWMap[strings.ToLower(w)]++
 		}
 	}
 
@@ -106,6 +107,7 @@ func (e *Engine) Fit() {
 	e.vectorSize = vecSize
 
 	wordCounts := make([]wordCount, 0, len(countWMap))
+
 	for word, count := range countWMap {
 		wordCounts = append(wordCounts, wordCount{
 			Word:  word,
@@ -113,6 +115,12 @@ func (e *Engine) Fit() {
 		})
 	}
 
+	sort.Slice(wordCounts, func(i, j int) bool {
+		if wordCounts[i].Count == wordCounts[j].Count {
+			return wordCounts[i].Word < wordCounts[j].Word
+		}
+		return wordCounts[i].Count > wordCounts[j].Count
+	})
 	sort.Slice(wordCounts, func(i, j int) bool {
 		return wordCounts[i].Count > wordCounts[j].Count
 	})
